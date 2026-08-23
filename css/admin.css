@@ -1,0 +1,426 @@
+/* ==========================================================================
+   ONLINE TEST / EXAM PLATFORM - ADMIN DASHBOARD (MOBILE RESPONSIVE & COMPACT)
+   ========================================================================== */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-title-group h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-title-group p {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin-top: 0.2rem;
+}
+
+/* Scrollable Admin Nav Bar */
+.admin-nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 0.3rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.admin-nav-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.admin-nav-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-nav-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+/* --------------------------------------------------------------------------
+   Metric Stats Grid (Compact & 2 in 1 Row on Mobile)
+   -------------------------------------------------------------------------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  gap: 0.5rem;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--stat-color, var(--primary));
+  opacity: 0.8;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.stat-subtext {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--stat-bg, var(--primary-glow));
+  color: var(--stat-color, var(--primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9375rem;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Filter & Toolbar Bar
+   -------------------------------------------------------------------------- */
+.toolbar-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.toolbar-search i {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.toolbar-search input {
+  padding-left: 2.25rem;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Test Cards & Creator
+   -------------------------------------------------------------------------- */
+.test-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.test-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.test-card:hover {
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-lg);
+}
+
+.test-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.test-card-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.test-card-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.875rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.test-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.875rem;
+}
+
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.45rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.test-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Question Builder System
+   -------------------------------------------------------------------------- */
+.question-item-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.125rem;
+  margin-bottom: 1rem;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.question-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.question-badge-number {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.question-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.options-builder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.option-builder-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  padding: 0.45rem 0.625rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: border-color var(--transition-fast);
+}
+
+.option-builder-row.is-correct {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.option-correct-radio {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--success);
+  flex-shrink: 0;
+}
+
+.option-label-tag {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  min-width: 18px;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Configurable Marking UI Card
+   -------------------------------------------------------------------------- */
+.marking-rule-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.125rem;
+  margin-bottom: 1.125rem;
+}
+
+.marking-formula-preview {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.875rem;
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--accent);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.formula-highlight {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* Attempt Detail Question Breakdown */
+.attempt-q-breakdown {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.attempt-q-breakdown.status-correct {
+  border-left: 4px solid var(--success);
+}
+
+.attempt-q-breakdown.status-wrong {
+  border-left: 4px solid var(--danger);
+}
+
+.attempt-q-breakdown.status-unanswered {
+  border-left: 4px solid var(--warning);
+}
+
+/* Mobile Specific Optimizations */
+@media (max-width: 600px) {
+  .admin-title-group h1 { font-size: 1.25rem; }
+  .test-grid { grid-template-columns: 1fr; }
+  .test-card-footer { flex-direction: column; align-items: stretch; }
+  .test-card-footer > div { justify-content: space-between; }
+  .question-item-header { flex-direction: column; align-items: flex-start; }
+  .question-item-controls { width: 100%; justify-content: flex-end; margin-top: 0.35rem; }
+}
+
+@media (max-width: 360px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
