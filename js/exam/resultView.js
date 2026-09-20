@@ -150,6 +150,16 @@ export async function renderResultView(params) {
                     ${escapeHtml(q.question_text)}
                   </div>
 
+                  ${
+                    q.image_url
+                      ? `
+                    <div class="review-question-image-wrap mb-4">
+                      <img src="${escapeHtml(q.image_url)}" alt="Question Diagram" class="review-question-img" />
+                    </div>
+                  `
+                      : ''
+                  }
+
                   <div class="flex-col gap-2">
                     ${sortedOptions
                       .map((opt, optIdx) => {

@@ -114,8 +114,20 @@ export async function renderQuestionBuilder(params) {
           <div class="question-item-header">
             <div class="flex-center gap-3">
               <span class="question-badge-number">${idx + 1}</span>
-              <div class="font-bold" style="font-size: 1.0625rem; max-width: 580px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${escapeHtml(q.question_text)}
+              <div>
+                <div class="font-bold" style="font-size: 1.0625rem; max-width: 580px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  ${escapeHtml(q.question_text)}
+                </div>
+                ${
+                  q.image_url
+                    ? `
+                  <div class="question-card-image-meta mt-2 flex-center gap-2">
+                    <img src="${escapeHtml(q.image_url)}" alt="Question Diagram" class="question-card-thumb-img" />
+                    <span class="badge badge-neutral" style="font-size: 0.75rem;"><i class="fa-solid fa-image text-primary"></i> Diagram Attached</span>
+                  </div>
+                `
+                    : ''
+                }
               </div>
             </div>
             <div class="question-item-controls">
@@ -246,6 +258,9 @@ export async function renderQuestionBuilder(params) {
 
   // Open Add/Edit Question Modal
   const openQuestionModal = (existingQ = null) => {
+    let currentImageUrl = existingQ?.image_url || null;
+    let pendingImageFile = null;
+
     let optionsList = existingQ?.options?.length
       ? existingQ.options.map((o) => ({ ...o }))
       : [
@@ -283,6 +298,59 @@ export async function renderQuestionBuilder(params) {
             <span class="helper">Clear and precise question</span>
           </label>
           <textarea id="modal-q-text" class="form-control" rows="3" placeholder="Type the question here..." required>${escapeHtml(existingQ?.question_text || '')}</textarea>
+        </div>
+
+        <!-- Question Image Upload / Diagram Section -->
+        <div class="form-group">
+          <label class="form-label">
+            <span><i class="fa-solid fa-image text-primary"></i> Question Image / Diagram (Optional)</span>
+            <span class="helper">Attach a diagram, circuit, chart, or photo</span>
+          </label>
+
+          <div class="question-image-upload-wrapper">
+            <!-- Image Preview Box -->
+            <div id="modal-image-preview-box" class="question-image-preview-card ${currentImageUrl ? '' : 'd-none'}">
+              <div class="preview-img-container">
+                <img id="modal-preview-img" src="${escapeHtml(currentImageUrl || '')}" alt="Attached question photo" />
+              </div>
+              <div class="preview-card-actions">
+                <span class="text-secondary" style="font-size: 0.8125rem;"><i class="fa-solid fa-circle-check text-success"></i> Photo attached</span>
+                <button type="button" id="btn-remove-q-image" class="btn btn-danger btn-sm">
+                  <i class="fa-solid fa-trash"></i> Remove Image
+                </button>
+              </div>
+            </div>
+
+            <!-- Image Dropzone / Selector -->
+            <div id="modal-image-uploader-box" class="question-image-dropzone ${currentImageUrl ? 'd-none' : ''}">
+              <input type="file" id="modal-q-file-input" accept="image/*" style="display: none;" />
+              <div class="dropzone-content">
+                <div class="dropzone-icon">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="dropzone-text">
+                  <span class="font-bold">Choose an image file</span> or drag & drop here
+                  <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">Supports PNG, JPG, JPEG, WebP, GIF</div>
+                </div>
+                <button type="button" id="btn-browse-image" class="btn btn-secondary btn-sm mt-2">
+                  <i class="fa-regular fa-folder-open"></i> Browse Files
+                </button>
+              </div>
+
+              <!-- URL Paste Option -->
+              <div class="image-url-toggle-wrap mt-3 text-center">
+                <button type="button" id="btn-toggle-url-input" class="btn btn-link btn-xs text-muted">
+                  <i class="fa-solid fa-link"></i> Or paste image URL
+                </button>
+                <div id="modal-url-input-container" class="d-none mt-2">
+                  <div class="flex-center gap-2">
+                    <input type="url" id="modal-q-image-url" class="form-control" placeholder="https://example.com/diagram.png" />
+                    <button type="button" id="btn-apply-image-url" class="btn btn-primary btn-sm">Attach</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -345,12 +413,19 @@ export async function renderQuestionBuilder(params) {
         }
 
         try {
+          let finalImageUrl = currentImageUrl;
+          if (pendingImageFile) {
+            showToast('Uploading', 'Processing and securing question image...', 'info', 2000);
+            finalImageUrl = await db.uploadQuestionImage(pendingImageFile);
+          }
+
           await db.saveQuestionWithOptions({
             testId,
             questionId: existingQ?.id || null,
             questionText: qText,
             explanation: expl,
             marks: test.marks_per_correct,
+            imageUrl: finalImageUrl,
             questionOrder: existingQ?.question_order || questions.length + 1,
             options: finalOptions,
           });
@@ -364,6 +439,92 @@ export async function renderQuestionBuilder(params) {
           return false;
         }
       },
+    });
+
+    // Wire image upload handlers inside modal
+    const fileInput = document.getElementById('modal-q-file-input');
+    const dropzone = document.getElementById('modal-image-uploader-box');
+    const previewBox = document.getElementById('modal-image-preview-box');
+    const previewImg = document.getElementById('modal-preview-img');
+    const removeImgBtn = document.getElementById('btn-remove-q-image');
+    const browseBtn = document.getElementById('btn-browse-image');
+    const toggleUrlBtn = document.getElementById('btn-toggle-url-input');
+    const urlContainer = document.getElementById('modal-url-input-container');
+    const urlInput = document.getElementById('modal-q-image-url');
+    const applyUrlBtn = document.getElementById('btn-apply-image-url');
+
+    const setPreview = (src) => {
+      previewImg.src = src;
+      previewBox.classList.remove('d-none');
+      dropzone.classList.add('d-none');
+    };
+
+    const handleFile = (file) => {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('Invalid File', 'Please select a valid image file (PNG, JPG, WebP, GIF).', 'warning');
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('File Too Large', 'Please select an image smaller than 8MB.', 'warning');
+        return;
+      }
+      pendingImageFile = file;
+      currentImageUrl = null;
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+    };
+
+    browseBtn?.addEventListener('click', () => fileInput?.click());
+    fileInput?.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // Drag & Drop
+    if (dropzone) {
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('drag-over');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    // Toggle URL input
+    toggleUrlBtn?.addEventListener('click', () => {
+      urlContainer?.classList.toggle('d-none');
+    });
+
+    // Apply URL
+    applyUrlBtn?.addEventListener('click', () => {
+      const url = urlInput?.value.trim();
+      if (!url) {
+        showToast('URL Required', 'Please enter an image URL.', 'warning');
+        return;
+      }
+      currentImageUrl = url;
+      pendingImageFile = null;
+      setPreview(url);
+    });
+
+    // Remove Image
+    removeImgBtn?.addEventListener('click', () => {
+      currentImageUrl = null;
+      pendingImageFile = null;
+      if (fileInput) fileInput.value = '';
+      previewImg.src = '';
+      previewBox.classList.add('d-none');
+      dropzone.classList.remove('d-none');
     });
 
     // Wire options interactivity inside modal

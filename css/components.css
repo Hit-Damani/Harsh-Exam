@@ -411,3 +411,28 @@
     width: 100%;
   }
 }
+
+/* --------------------------------------------------------------------------
+   General Utilities
+   -------------------------------------------------------------------------- */
+.d-none {
+  display: none !important;
+}
+
+.btn-xs {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary-light);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-link:hover {
+  color: var(--primary);
+}

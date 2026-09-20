@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS public.questions (
     question_type TEXT NOT NULL DEFAULT 'mcq',
     marks NUMERIC(6,2) DEFAULT 1.00,
     explanation TEXT,
+    image_url TEXT,
     question_order INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -204,6 +205,7 @@ BEGIN
                 'question_text', q.question_text,
                 'question_type', q.question_type,
                 'marks', q.marks,
+                'image_url', q.image_url,
                 'question_order', q.question_order,
                 'options', (
                     SELECT jsonb_agg(
@@ -361,3 +363,23 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ----------------------------------------------------------------------------
+-- MIGRATION HELPER & STORAGE BUCKET CONFIGURATION
+-- ----------------------------------------------------------------------------
+-- Ensure image_url column exists for existing tables
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+-- Supabase Storage bucket for question images (optional)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('question-images', 'question-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "question_images_public_read" ON storage.objects;
+CREATE POLICY "question_images_public_read" ON storage.objects
+    FOR SELECT USING (bucket_id = 'question-images');
+
+DROP POLICY IF EXISTS "question_images_auth_upload" ON storage.objects;
+CREATE POLICY "question_images_auth_upload" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'question-images' AND auth.role() = 'authenticated');
+

@@ -148,6 +148,7 @@ export const db = {
         question_type,
         marks,
         explanation,
+        image_url,
         question_order,
         options (
           id,
@@ -168,6 +169,7 @@ export const db = {
         return {
           ...q,
           explanation: null,
+          image_url: q.image_url || null,
           options: sortedOptions.map((o) => ({
             id: o.id,
             option_text: o.option_text,
@@ -177,12 +179,13 @@ export const db = {
       }
       return {
         ...q,
+        image_url: q.image_url || null,
         options: sortedOptions,
       };
     });
   },
 
-  async saveQuestionWithOptions({ testId, questionId, questionText, explanation, marks, questionOrder, options }) {
+  async saveQuestionWithOptions({ testId, questionId, questionText, explanation, marks, questionOrder, imageUrl, options }) {
     const supabase = getSupabase();
 
     let targetQuestionId = questionId;
@@ -195,6 +198,7 @@ export const db = {
           question_text: questionText,
           explanation: explanation,
           marks: marks,
+          image_url: imageUrl !== undefined ? imageUrl : null,
           question_order: questionOrder,
           updated_at: new Date().toISOString(),
         })
@@ -214,6 +218,7 @@ export const db = {
             question_text: questionText,
             explanation: explanation,
             marks: marks,
+            image_url: imageUrl || null,
             question_order: questionOrder,
           },
         ])
@@ -275,6 +280,7 @@ export const db = {
           question_text: `${origQ.question_text} (Copy)`,
           explanation: origQ.explanation,
           marks: origQ.marks,
+          image_url: origQ.image_url || null,
           question_order: nextOrder,
         },
       ])
@@ -533,6 +539,7 @@ export const db = {
         question_text,
         explanation,
         marks,
+        image_url,
         question_order,
         options (
           id,
@@ -697,4 +704,83 @@ export const db = {
       };
     });
   },
+
+  // --------------------------------------------------------------------------
+  // MEDIA & IMAGE STORAGE
+  // --------------------------------------------------------------------------
+  /**
+   * Uploads an image file to Supabase Storage bucket 'question-images'.
+   * If the storage bucket is not available or fails, falls back automatically to
+   * a client-side compressed base64 Data URL (max 1200px, 82% quality JPEG)
+   * ensuring zero-friction operation out of the box.
+   */
+  async uploadQuestionImage(file) {
+    if (!file) return null;
+    const supabase = getSupabase();
+
+    // 1. Try Supabase Storage bucket
+    try {
+      const ext = file.name ? file.name.split('.').pop() : 'jpg';
+      const fileName = `q_${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      const filePath = `questions/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('question-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (!error && data) {
+        const { data: pubData } = supabase.storage
+          .from('question-images')
+          .getPublicUrl(filePath);
+
+        if (pubData?.publicUrl) {
+          return pubData.publicUrl;
+        }
+      }
+      if (error) {
+        console.warn('Supabase storage upload returned error, using optimized inline fallback:', error.message);
+      }
+    } catch (e) {
+      console.warn('Storage exception, using optimized inline fallback:', e);
+    }
+
+    // 2. Resilient client-side compressed Data URL fallback
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG with 0.82 quality
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  },
 };
+

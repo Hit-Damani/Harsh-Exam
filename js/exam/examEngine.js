@@ -222,6 +222,21 @@ export async function renderExamEngine(params) {
 
         <div class="exam-question-text">${escapeHtml(q.question_text)}</div>
 
+        ${
+          q.image_url
+            ? `
+          <div class="exam-question-image-wrap mb-4">
+            <div class="exam-question-image-card" id="exam-img-zoom-trigger">
+              <img src="${escapeHtml(q.image_url)}" alt="Question Diagram" class="exam-question-img" />
+              <div class="exam-img-zoom-hint">
+                <i class="fa-solid fa-magnifying-glass-plus"></i> Click diagram to enlarge
+              </div>
+            </div>
+          </div>
+        `
+            : ''
+        }
+
         <div class="exam-options-group" id="options-container">
           ${sortedOptions
             .map((opt, optIdx) => {
@@ -269,6 +284,23 @@ export async function renderExamEngine(params) {
         </div>
       </div>
     `;
+
+    // Question Image Click-to-Enlarge Zoom
+    const zoomTrigger = qPane.querySelector('#exam-img-zoom-trigger');
+    if (zoomTrigger && q.image_url) {
+      zoomTrigger.addEventListener('click', () => {
+        showModal({
+          title: `<i class="fa-solid fa-image text-primary"></i> Question Diagram (Enlarged)`,
+          contentHtml: `
+            <div class="text-center p-2" style="max-height: 75vh; overflow: auto;">
+              <img src="${escapeHtml(q.image_url)}" alt="Question Diagram Full View" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow-lg);" />
+            </div>
+          `,
+          confirmText: 'Done',
+          size: 'lg',
+        });
+      });
+    }
 
     // Option Selection Handlers
     qPane.querySelectorAll('.exam-option-item').forEach((item) => {
