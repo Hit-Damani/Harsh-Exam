@@ -17,7 +17,7 @@ export function renderLogin() {
             <i class="fa-solid fa-graduation-cap"></i>
           </div>
           <h2 class="auth-title">Welcome Back</h2>
-          <p class="auth-subtitle">Sign in to your ApexExam account</p>
+          <p class="auth-subtitle">Sign in to your Neet Exam account</p>
         </div>
 
         <div class="auth-nav">
